@@ -96,6 +96,7 @@ class document{
         for(auto element : documentElements){
             result = result + element->render();
         }
+        return result;
     }
 
 };
@@ -110,12 +111,58 @@ class documentEditor{
     //ye constructor bna rhe hai initialize krne ke liye 
     documentEditor(document* docs,persistence* storage){
         this->docs = docs;
-        this->
+        this->storage = storage;
     }
 
+    //Making function for adding text
+    void addText(string text){
+        docs->addDocumentElements(new textElement(text));
+    }
+
+    void addImage(string path){
+        docs->addDocumentElements(new imageElement(path));
+    }
+    
+    void addnewLine(){
+        docs->addDocumentElements(new newLineElement());
+    }
+
+    void addTabSpace(){
+        docs->addDocumentElements(new tabElement());
+    }
+
+    string renderDocument(){
+        if(renderedDocument.empty()) {
+            renderedDocument = docs->render();
+        }
+        return renderedDocument ;
+    }
+
+    void savedocument(){
+        storage->save(renderDocument());
+    }
 };
 
 
 int main(){
+    document* docs = new document();
 
+    persistence* storage = new fileStorage();
+   documentEditor* editor = new documentEditor(docs, storage);
+
+    // Simulate a client using the editor with common text formatting features.
+    editor->addText("Hello, world!");
+    editor->addnewLine();
+    editor->addText("This is a real-world document editor example.");
+    editor->addnewLine();
+    editor->addTabSpace();
+    editor->addText("Indented text after a tab space.");
+    editor->addnewLine();
+
+    // Render and display the final document.
+    cout << editor->renderDocument() << endl;
+
+    editor->savedocument();
+
+    return 0;
 }
