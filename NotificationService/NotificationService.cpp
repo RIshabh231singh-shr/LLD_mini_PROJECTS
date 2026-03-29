@@ -177,3 +177,104 @@ class Logger : public Iobserver{
          cout << "Logging New Notification : \n" << notificationObservable->getNotificationContent();
     }
 };
+
+//Strategy Design pattern
+
+class INotificationStrategy{
+    public:
+    virtual void sendNotification(string content) = 0;
+};
+
+class EmailStrategy : public INotificationStrategy {
+    private:
+    string emailId;
+    public:
+    EmailStrategy(const string &emailId){
+        this->emailId = emailId;
+    }
+    void sendNotification(string content) override{
+        // Simulate the process of sending an email notification, 
+        // representing the dispatch of messages to users via email.​
+        cout << "Sending email Notification to: " << emailId << "\n" << content;
+    }
+};
+class SMSStrategy : public INotificationStrategy {
+private:
+    string mobileNumber;
+public:
+
+    SMSStrategy(string mobileNumber) {
+        this->mobileNumber = mobileNumber;
+    }
+
+    void sendNotification(string content) override {
+        // Simulate the process of sending an SMS notification, 
+        // representing the dispatch of messages to users via SMS.​
+        cout << "Sending SMS Notification to: " << mobileNumber << "\n" << content;
+    }
+};
+
+class PopUpStrategy : public INotificationStrategy{
+    public:
+    void sendNotification(string content) override {
+        // Simulate the process of sending popup notification.
+        cout << "Sending Popup Notification: \n" << content;
+    }
+};
+
+class NotificationEngine : public Iobserver {
+private:
+    NotificationObservable* notificationObservable;
+    vector<INotificationStrategy*> notificationStrategies;
+
+public:
+    NotificationEngine() {
+        this->notificationObservable = NotificationService::getInstance()->getObservable();
+        notificationObservable->addObserver(this);
+    }
+
+    NotificationEngine(NotificationObservable* observable) {
+        this->notificationObservable = observable;
+    }
+
+    void addNotificationStrategy(INotificationStrategy* ns) {
+        this->notificationStrategies.push_back(ns);
+    }
+
+    // Can have RemoveNotificationStrategy as well.
+
+    void update() {
+        string notificationContent = notificationObservable->getNotificationContent();
+        for(const auto notificationStrategy : notificationStrategies) {
+            notificationStrategy->sendNotification(notificationContent);
+        }
+    }
+};
+
+
+int main() {
+    // Create NotificationService.
+    NotificationService* notificationService = NotificationService::getInstance();
+   
+    // Create Logger Observer
+    Logger* logger = new Logger();
+
+    // Create NotificationEngine observers.
+    NotificationEngine* notificationEngine = new NotificationEngine();
+
+    notificationEngine->addNotificationStrategy(new EmailStrategy("random.person@gmail.com"));
+    notificationEngine->addNotificationStrategy(new SMSStrategy("+91 9876543210"));
+    notificationEngine->addNotificationStrategy(new PopUpStrategy());
+
+    // Create a notification with decorators.
+    INotification* notification = new SimpleNotification("Your order has been shipped!");
+    notification = new TimestampDecorator(notification);
+    notification = new SignatureStampDecorator(notification, "Customer Care");
+    
+    notificationService->sendNotification(notification);
+
+    delete logger;
+    delete notificationEngine;
+    return 0;
+}
+
